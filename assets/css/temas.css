@@ -1,0 +1,114 @@
+/**
+ * @file: assets/css/temas.css
+ * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
+ * @data_criacao: 2026-10-25
+ * @ultima_modificacao: 2026-10-26
+ * @versao: 0.3.0
+ * @descricao: Tokens visuais dos dois modos (<html data-tema="escuro|claro">). Categoria visual:
+ *             GLASSMORPHISM escuro com acento neon (Dashtreme: cartões translúcidos sobre fundo em
+ *             gradiente; Artifice: Orbitron + Inter, ciano #2EDAF1, botões em pílula com brilho
+ *             interno). Todas as cores do site, dos gráficos (ECharts) e do mapa saem daqui —
+ *             o JS lê as variáveis --serie-* e --grafico-*.
+ */
+
+:root,
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --fonte-titulo: 'Orbitron', 'Inter', system-ui, sans-serif;
+  --fonte-texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --fundo: #000c14;
+  --fundo-2: #01141d;
+  --fundo-pagina:
+    radial-gradient(1100px 700px at 12% -8%, rgba(46, 218, 241, .16), transparent 62%),
+    radial-gradient(900px 700px at 105% 18%, rgba(31, 0, 252, .20), transparent 60%),
+    radial-gradient(800px 600px at 50% 115%, rgba(46, 218, 241, .08), transparent 60%),
+    linear-gradient(135deg, #000c14 0%, #01141d 45%, #04202e 100%);
+
+  --vidro: rgba(255, 255, 255, .045);
+  --vidro-forte: rgba(255, 255, 255, .09);
+  --vidro-hover: rgba(255, 255, 255, .14);
+  --vidro-lateral: rgba(0, 8, 14, .55);
+  --vidro-topo: rgba(0, 12, 20, .62);
+  --desfoque: blur(14px) saturate(140%);
+  --borda: rgba(255, 255, 255, .09);
+  --borda-forte: rgba(255, 255, 255, .18);
+
+  --texto: #ffffff;
+  --texto-2: rgba(255, 255, 255, .70);
+  --texto-3: rgba(255, 255, 255, .45);
+  --acento: #2edaf1;
+  --acento-texto: #01141d;
+  --acento-brilho: rgba(46, 218, 241, .49);
+  --acento-suave: rgba(46, 218, 241, .14);
+
+  --sucesso: #34d399;
+  --alerta: #facc15;
+  --perigo: #fb7185;
+
+  --sombra: 0 4.8px 12.8px rgba(0, 0, 0, .18);
+  --sombra-forte: 0 18px 48px rgba(0, 0, 0, .45);
+  --raio: 10px;
+  --raio-pilula: 100px;
+
+  /* gráficos e mapa */
+  --serie-1: #2edaf1;
+  --serie-2: #ffffff;
+  --serie-3: #a78bfa;
+  --serie-4: #f472b6;
+  --serie-5: #facc15;
+  --serie-6: #34d399;
+  --serie-7: #fb923c;
+  --serie-8: #60a5fa;
+  --grafico-texto: rgba(255, 255, 255, .70);
+  --grafico-linha: rgba(255, 255, 255, .08);
+  --grafico-dica: rgba(1, 20, 29, .94);
+  --mapa-estilo: 'https://tiles.openfreemap.org/styles/dark';
+}
+
+:root[data-tema="claro"] {
+  color-scheme: light;
+  --fundo: #f3f8fb;
+  --fundo-2: #ffffff;
+  --fundo-pagina:
+    radial-gradient(1100px 700px at 12% -8%, rgba(46, 218, 241, .22), transparent 60%),
+    radial-gradient(900px 700px at 105% 18%, rgba(99, 102, 241, .14), transparent 60%),
+    linear-gradient(135deg, #eef6fa 0%, #f7fafc 45%, #e6eff6 100%);
+
+  --vidro: rgba(255, 255, 255, .62);
+  --vidro-forte: rgba(255, 255, 255, .85);
+  --vidro-hover: rgba(10, 162, 184, .10);
+  --vidro-lateral: rgba(255, 255, 255, .58);
+  --vidro-topo: rgba(255, 255, 255, .66);
+  --desfoque: blur(14px) saturate(160%);
+  --borda: rgba(15, 34, 48, .09);
+  --borda-forte: rgba(15, 34, 48, .18);
+
+  --texto: #0f2230;
+  --texto-2: #43596a;
+  --texto-3: #7a8d9b;
+  --acento: #0a9fb5;
+  --acento-texto: #ffffff;
+  --acento-brilho: rgba(10, 159, 181, .32);
+  --acento-suave: rgba(10, 159, 181, .12);
+
+  --sucesso: #059669;
+  --alerta: #b45309;
+  --perigo: #e11d48;
+
+  --sombra: 0 4.8px 12.8px rgba(15, 34, 48, .07);
+  --sombra-forte: 0 18px 48px rgba(15, 34, 48, .16);
+
+  --serie-1: #0a9fb5;
+  --serie-2: #1e3a5f;
+  --serie-3: #7c3aed;
+  --serie-4: #db2777;
+  --serie-5: #ca8a04;
+  --serie-6: #059669;
+  --serie-7: #ea580c;
+  --serie-8: #2563eb;
+  --grafico-texto: #43596a;
+  --grafico-linha: rgba(15, 34, 48, .08);
+  --grafico-dica: rgba(255, 255, 255, .96);
+  --mapa-estilo: 'https://tiles.openfreemap.org/styles/positron';
+}

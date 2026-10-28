@@ -1,0 +1,150 @@
+<!doctype html>
+<!--
+  @file: index.html
+  @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
+  @data_criacao: 2026-10-25
+  @ultima_modificacao: 2026-10-26
+  @versao: 0.3.0
+  @descricao: Casca do Atlas Bioceânico (GitHub Pages, sem etapa de build). Cabeçalho fixo com busca e
+              preferências, barra lateral com as seções e subitens, área de conteúdo trocada pelo
+              roteador (assets/js/roteador.js) e rodapé. Bibliotecas por CDN com versão fixa (import map).
+-->
+<html lang="pt-BR" data-tema="escuro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas Bioceânico</title>
+  <meta name="description" content="Painel de pesquisa da Rota Bioceânica de Capricórnio: notícias, documentos oficiais e acompanhamento da obra no Brasil, Paraguai, Argentina e Chile.">
+  <meta name="theme-color" content="#000c14">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <script>
+    // tema salvo antes de desenhar (evita "piscar" claro/escuro)
+    try { const t = localStorage.getItem('atlas.tema'); if (t) document.documentElement.dataset.tema = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+  <link href="assets/css/temas.css" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+  <script type="importmap">
+  {
+    "imports": {
+      "echarts": "https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.esm.min.js",
+      "maplibre-gl": "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/+esm"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="pular" href="#conteudo" data-i18n="pular">Pular para o conteúdo</a>
+
+  <!-- ===================================================== cabeçalho -->
+  <header class="topo">
+    <div class="topo-marca">
+      <a class="marca" href="#/dashboard" aria-label="Atlas Bioceânico">
+        <img src="assets/img/logo.svg" alt="" width="34" height="34">
+        <span class="marca-texto">Atlas <b>Bioceânico</b></span>
+      </a>
+      <button class="icone-botao alternar-menu" type="button" data-i18n-aria="menu" aria-controls="lateral" aria-expanded="true"><i class="bx bx-menu"></i></button>
+    </div>
+
+    <form class="busca" role="search" id="form-busca">
+      <i class="bx bx-search"></i>
+      <input id="campo-busca" type="search" autocomplete="off" data-i18n-placeholder="busca.placeholder" placeholder="Buscar matérias…">
+      <kbd>/</kbd>
+    </form>
+
+    <nav class="topo-acoes" aria-label="Preferências">
+      <div class="menu-suspenso">
+        <button class="icone-botao" type="button" id="botao-idioma" aria-haspopup="true" aria-expanded="false" data-i18n-aria="idioma">
+          <span class="bandeira" id="bandeira-idioma">PT</span>
+        </button>
+        <div class="suspenso" role="menu" hidden>
+          <button role="menuitem" data-idioma="pt"><span class="bandeira">PT</span> Português</button>
+          <button role="menuitem" data-idioma="es"><span class="bandeira">ES</span> Español</button>
+        </div>
+      </div>
+      <button class="icone-botao" type="button" id="botao-tema" data-i18n-aria="tema.alternar"><i class="bx bx-moon"></i></button>
+      <div class="menu-suspenso">
+        <button class="icone-botao" type="button" id="botao-dados" aria-haspopup="true" aria-expanded="false" data-i18n-aria="dados.titulo">
+          <i class="bx bx-data"></i><span class="ponto-novo" hidden></span>
+        </button>
+        <div class="suspenso suspenso-largo" id="painel-dados" role="dialog" hidden></div>
+      </div>
+      <a class="icone-botao" href="https://github.com/calusbr/atlas-bioceanico" target="_blank" rel="noopener" aria-label="GitHub"><i class="bx bxl-github"></i></a>
+      <button class="icone-botao" type="button" id="botao-tela" data-i18n-aria="tela_cheia"><i class="bx bx-fullscreen"></i></button>
+    </nav>
+  </header>
+
+  <!-- ===================================================== barra lateral -->
+  <aside class="lateral" id="lateral">
+    <nav class="menu" aria-label="Seções">
+      <ul>
+        <li class="menu-grupo" data-secao="dashboard">
+          <a class="menu-item" href="#/dashboard"><i class="bx bx-grid-alt"></i><span data-i18n="nav.dashboard">Dashboard</span><i class="bx bx-chevron-down seta"></i></a>
+          <ul class="submenu">
+            <li><a href="#/dashboard/visao" data-i18n="sub.visao">Visão geral</a></li>
+            <li><a href="#/dashboard/cobertura" data-i18n="sub.cobertura">Cobertura no tempo</a></li>
+            <li><a href="#/dashboard/territorio" data-i18n="sub.territorio">Território e trechos</a></li>
+            <li><a href="#/dashboard/fontes" data-i18n="sub.fontes">Fontes</a></li>
+            <li><a href="#/dashboard/temas" data-i18n="sub.temas">Temas</a></li>
+            <li><a href="#/dashboard/obra" data-i18n="sub.obra">Obra em números</a></li>
+            <li><a href="#/dashboard/ultimas" data-i18n="sub.ultimas">Últimas matérias</a></li>
+          </ul>
+        </li>
+        <li class="menu-grupo" data-secao="semantico">
+          <a class="menu-item" href="#/semantico"><i class="bx bx-network-chart"></i><span data-i18n="nav.semantico">Semântico</span><i class="bx bx-chevron-down seta"></i></a>
+          <ul class="submenu">
+            <li><a href="#/semantico/mapa" data-i18n="sub.mapa_semantico">Mapa de assuntos</a></li>
+            <li><a href="#/semantico/grafo" data-i18n="sub.grafo">Grafo de atores</a></li>
+            <li><a href="#/semantico/busca" data-i18n="sub.busca_semantica">Busca por significado</a></li>
+          </ul>
+        </li>
+        <li class="menu-grupo" data-secao="gestao">
+          <a class="menu-item" href="#/gestao"><i class="bx bx-building-house"></i><span data-i18n="nav.gestao">Gestão de Projeto</span><i class="bx bx-chevron-down seta"></i></a>
+          <ul class="submenu">
+            <li><a href="#/gestao/divulgado" data-i18n="sub.divulgado">Divulgado × realizado</a></li>
+            <li><a href="#/gestao/avanco" data-i18n="sub.avanco">Avanço por trecho</a></li>
+            <li><a href="#/gestao/fatos" data-i18n="sub.fatos">Linha do tempo de fatos</a></li>
+            <li><a href="#/gestao/documentos" data-i18n="sub.documentos">Documentos oficiais</a></li>
+          </ul>
+        </li>
+        <li class="menu-grupo" data-secao="agente">
+          <a class="menu-item" href="#/agente"><i class="bx bx-bot"></i><span data-i18n="nav.agente">Agente</span><i class="bx bx-chevron-down seta"></i></a>
+          <ul class="submenu">
+            <li><a href="#/agente/conversa" data-i18n="sub.conversa">Conversar</a></li>
+            <li><a href="#/agente/ao-vivo" data-i18n="sub.ao_vivo">Sala ao vivo</a></li>
+          </ul>
+        </li>
+        <li class="menu-grupo" data-secao="sobre">
+          <a class="menu-item" href="#/sobre"><i class="bx bx-info-circle"></i><span data-i18n="nav.sobre">Sobre</span><i class="bx bx-chevron-down seta"></i></a>
+          <ul class="submenu">
+            <li><a href="#/sobre/projeto" data-i18n="sub.projeto">O projeto</a></li>
+            <li><a href="#/sobre/fontes" data-i18n="sub.lista_fontes">Fontes monitoradas</a></li>
+            <li><a href="#/sobre/metodo" data-i18n="sub.metodo">Metodologia</a></li>
+            <li><a href="#/sobre/dados" data-i18n="sub.dados">Dados abertos</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <div class="lateral-rodape">
+      <span class="selo-fase">Fase B</span>
+      <span id="lateral-versao"></span>
+    </div>
+  </aside>
+  <div class="veu" hidden></div>
+
+  <!-- ===================================================== conteúdo -->
+  <main id="conteudo" class="conteudo" tabindex="-1"></main>
+
+  <!-- ===================================================== rodapé -->
+  <footer class="rodape">
+    <p>Copyright © 2026. Atlas Rota Bioceânica.</p>
+    <p class="rodape-dados" id="rodape-dados"></p>
+  </footer>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
