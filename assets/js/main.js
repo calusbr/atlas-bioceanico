@@ -2,8 +2,8 @@
  * @file: assets/js/main.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-29
+ * @versao: 0.5.0
  * @descricao: Liga a casca do painel: barra lateral (recolher no computador, gaveta no celular,
  *             submenus em sanfona, item ativo pela rota), menus suspensos (idioma, dados), modo
  *             claro/escuro, tela cheia, busca (atalho "/") e informações dos dados no rodapé.
@@ -26,12 +26,11 @@ function lateral() {
       const aberta = document.body.classList.toggle('gaveta-aberta');
       $('.veu').hidden = !aberta;
     } else {
-      document.body.classList.toggle('recolhida');
-      try { localStorage.setItem('atlas.recolhida', document.body.classList.contains('recolhida') ? '1' : ''); } catch { /* ignora */ }
+      document.body.classList.toggle('recolhida');     // vale só nesta visita: o site sempre abre com o menu aberto
     }
   });
   $('.veu').addEventListener('click', fecharGaveta);
-  try { if (localStorage.getItem('atlas.recolhida')) document.body.classList.add('recolhida'); } catch { /* ignora */ }
+  try { localStorage.removeItem('atlas.recolhida'); } catch { /* preferência antiga (v0.4) */ }
   // logo da barra recolhida também reabre o menu
   $('.marca').addEventListener('dblclick', () => document.body.classList.remove('recolhida'));
 
@@ -137,8 +136,7 @@ async function infoDados() {
         h('dt', {}, t('dados.unicas')), h('dd', {}, numero(c.noticias_unicas)),
         h('dt', {}, t('dados.pdfs')), h('dd', {}, numero(c.pdfs)),
         h('dt', {}, t('dados.contrato')), h('dd', {}, `${m.contrato} · schema ${m.schema_version}`)),
-      estado.offline ? h('p', { class: 'aviso' }, t('dados.offline')) : null,
-      h('a', { class: 'botao botao-pequeno', href: '#/sobre/dados' }, t('sub.dados')));
+      estado.offline ? h('p', { class: 'aviso' }, t('dados.offline')) : null);
     $('#rodape-dados').textContent = t('dados.rodape', { data: dataCurta(m.gerado_em.slice(0, 10)), n: numero(c.noticias_unicas) });
     $('#lateral-versao').textContent = `v${m.contrato}`;
   } catch { /* a página mostra o erro */ }

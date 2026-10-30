@@ -1,4 +1,4 @@
-# Contrato de dados — exportação v3 (contrato `3.1`)
+# Contrato de dados — exportação v3 (contrato `3.3`)
 
 Este documento descreve os arquivos que o **site** (este repositório) consome. Os arquivos são gerados pela
 **PARTE 1** (`projeto_rota/V2/CODE`, ação `exportar-v3`) e ficam na pasta `dados/` deste repositório.
@@ -38,7 +38,7 @@ Medição na base de 25/10/2026 (16.188 matérias núcleo+contexto, 259 PDFs): �
 ```json
 {
   "projeto": "Rota Bioceânica de Capricórnio",
-  "contrato": "3.1", "schema_version": "2.3", "versao_pipeline": "2.3.1",
+  "contrato": "3.3", "schema_version": "2.3", "versao_pipeline": "2.4.1",
   "gerado_em": "2026-10-25T21:00:00+00:00",
   "periodo": ["2008-01-02", "2026-10-25"],
   "contagens": {"noticias": 16134, "noticias_unicas": 16048, "pdfs": 259,
@@ -90,6 +90,8 @@ para a posição na lista correspondente de `dic.json`.
 | `doc_tipos` | tipos de PDF (`ata`, `declaracao`, `informe`, …) — código `k` |
 | `tipos_valor` | `[{tipo, rotulo}]` — financiado, contratado, executado, economico, previsto, outro |
 | `tipos_evento` | inauguracao, conclusao, entrega, assinatura, aprovacao, licitacao, inicio |
+| `tipos_promessa` | (3.2) conclusao, operacao, inicio, licitacao, previsao |
+| `cambio` | (3.2) `{moeda: {ano: unidades por 1 USD}}` — a tabela usada na coluna `usd` (`config/cambio.yaml`) |
 
 ## 5. `indice/noticias.json`
 
@@ -113,6 +115,8 @@ O mês do arquivo de texto é `d.slice(0, 7)`.
 (miniatura, caminho relativo a `PDFS/`). Texto em `textos/pdfs/<id>.json` (desde o contrato 3.1;
 no 3.0 era um arquivo por ano).
 
+Desde o 3.3: `lg` (códigos de lugares citados, para o mapa) e `u` (link direto do PDF no site de origem).
+
 ## 7. `textos/noticias/AAAA-MM.json`
 
 Objeto `{id: matéria}`:
@@ -135,8 +139,16 @@ Somente o **representante** de cada grupo de tradução entra nestas tabelas (o 
 conta uma vez). `id` aponta para o índice/textos da matéria de origem.
 
 ### `gestao/valores.json`
-`id, d, valor` (número, na moeda original)`, moeda` (`BRL`, `USD`, `PYG`, `ARS`, `CLP`, …)`, tipo, trecho,
-pais, texto`. Só valores ligados à obra/corredor (`rota` verdadeiro ou com trecho).
+`id, d, valor` (número, na moeda original)`, moeda` (`BRL`, `USD`, `PYG`, `ARS`, `CLP`, …)`, usd, tipo, trecho,
+pais, texto, n, ids, ok`. Só valores ligados à obra/corredor (`rota` verdadeiro ou com trecho).
+
+Desde o contrato **3.2** cada linha é um **anúncio**: o mesmo valor (±1%), moeda, tipo e trecho citado em
+várias matérias vira uma linha só (sem trecho, só dentro de 90 dias). `id`/`d` = primeira matéria,
+`ids` = todas as matérias que citam, `n` = quantas. `usd` = valor convertido pelo câmbio médio do ano da
+matéria (`dic.json › cambio`; `null` se a moeda é desconhecida). `ok` = 0 quando o valor é implausível
+para a obra (acima de US$ 5 bi: PIB, comércio ou erro de leitura) ou é indicador econômico.
+**Não some anúncios para obter o custo**: o mesmo custo reaparece com tipos diferentes ao longo dos anos;
+use o valor mais citado ou o mais recente por trecho e tipo.
 
 | `tipo` | leitura no painel |
 |---|---|
@@ -148,7 +160,9 @@ pais, texto`. Só valores ligados à obra/corredor (`rota` verdadeiro ou com tre
 | `outro` | valor sem qualificação |
 
 ### `gestao/percentuais.json`
-`id, d, valor` (0–100)`, trecho, pais, origem, contexto`. `origem = texto` quando a data da medição foi
+`id, d, valor` (0–100)`, trecho, pais, origem, contexto, ok`. `ok` (3.2) = 1 quando a oração do número fala
+de execução/avanço de um trecho; 0 quando não tem trecho, fala de dinheiro, mede só uma parte da obra
+(pilares, fundações, drenagem…) ou, na ponte, fala do acesso a ela. `origem = texto` quando a data da medição foi
 escrita junto do percentual; `publicacao` quando se usa a data da matéria. Para a curva de avanço por
 trecho, use o **máximo por trecho e por mês** (matérias repetem números antigos).
 
@@ -156,7 +170,24 @@ trecho, use o **máximo por trecho e por mês** (matérias repetem números anti
 `id, d, tipo, trecho, pais, origem, frase`. `origem`: `texto` (data completa na frase), `ano_no_texto`
 ("em 2024 se firmó…" → `AAAA-01-01`, precisão de ano) ou `publicacao`.
 
-> As três tabelas são extraídas por regras transparentes (`config/taxonomia.yaml › gestao_projeto` na
+### `gestao/promessas.json` (3.2)
+`id, d` (publicação)`, ano, mes` (prazo divulgado)`, tipo` (`conclusao`, `operacao`, `inicio`, `licitacao`,
+`previsao`)`, trecho, pais, frase, n, ids`. Vem de `marcos_temporais`: só frases sobre a obra/rota, prazo
+no ano da matéria ou depois; a mesma frase repetida em várias matérias vira uma linha (`n`, `ids`).
+
+### `gestao/pdf_fatos.json` (3.3)
+`id` (PDF)`, d, grupo` (`valor`, `percentual`, `evento`, `prazo`)`, tipo, trecho, pais, valor, moeda, usd, ano, frase`.
+Fatos de OBRA citados nos documentos oficiais, com regras mais estritas que as das matérias: o trecho vem
+do próprio parágrafo; valores entre US$ 100 mil e US$ 2 bi, sem orçamento nacional/carteira (relatórios do
+TCU, PLOA…); eventos só de obra (não "os técnicos concluíram que…") e sem negação ("aún no inició").
+Base dos indicadores da Gestão de Projeto. A ficha de cada PDF (`textos/pdfs/<id>.json › fatos`) traz os mesmos.
+
+### `indice/pdfs_termos.json` (3.2)
+`{"termos": [palavra…], "docs": [[posição em indice/pdfs.json…]…]}` — índice invertido para a busca no
+acervo de PDFs. Palavras minúsculas e sem acento, de 4 a 25 letras, em ordem alfabética (busca por prefixo);
+palavras presentes em mais de 80% dos documentos ficam de fora. Baixado só quando a pessoa busca.
+
+> As tabelas são extraídas por regras transparentes (`config/taxonomia.yaml › gestao_projeto` na
 > PARTE 1). Há ruído residual: o painel deve sempre permitir abrir a frase/contexto e a matéria original.
 
 ## 9. `stats/serie_mensal.json`
@@ -190,3 +221,5 @@ Serão acrescentadas sem quebrar o contrato (`3.x`): `semantico/vetores_int8.bin
 |---|---|
 | 3.0 | primeira versão (Fase A) |
 | 3.1 | `textos/pdfs/AAAA.json` → `textos/pdfs/<id>.json` (um arquivo por documento) |
+| 3.3 | `gestao/pdf_fatos.json`; `indice/pdfs.json` ganha `lg` (lugares) e `u` (link do PDF); `textos/pdfs/<id>.json` ganha a ficha completa (site, idioma, n_paginas, url_origem, comissao, temas, paises, lugares, trechos, termos, entidades, percentuais_obra, eventos_realizados, fatos) |
+| 3.2 | Fase E: valores agrupados por anúncio (`usd`, `n`, `ids`, `ok`), `ok` nos percentuais, `gestao/promessas.json`, `indice/pdfs_termos.json`, `dic.cambio` e `dic.tipos_promessa` |

@@ -2,14 +2,15 @@
  * @file: assets/js/ui/dom.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-28
+ * @versao: 0.4.0
  * @descricao: Construtores de DOM das páginas: `h()` (texto sempre escapado), cartão com cabeçalho,
  *             indicador (KPI) com ícone e minigráfico, título de seção, estados de carregamento/erro,
  *             tabela de matérias com paginação e parágrafos de texto.
  * @requisitos: nenhum.
  */
 import { t, numero, dataCurta } from '../i18n.js';
+import { carregar } from '../dados/carregador.js';
 
 /** h('a', {href, class, onclick}, 'texto', nó) — null/false são ignorados. */
 export function h(tag, attrs = {}, ...filhos) {
@@ -31,10 +32,29 @@ export function h(tag, attrs = {}, ...filhos) {
 
 export const icone = (nome) => h('i', { class: `bx ${nome}`, 'aria-hidden': 'true' });
 
+/** Primeira letra maiúscula (legendas e rodapés de cartão). */
+export const maiuscula = (s) => (typeof s === 'string' && s ? s[0].toLocaleUpperCase() + s.slice(1) : s);
+
+/**
+ * Cabeçalho de página: linha com a trilha (Início › Seção) e uma ação à direita na mesma altura;
+ * abaixo, o título. trilha = [texto | [texto, href]].
+ */
+export function cabecalhoPagina({ trilha = [], titulo, acao, extra }) {
+  const itens = [];
+  trilha.forEach((x, k) => {
+    if (k) itens.push(icone('bx-chevron-right'));
+    itens.push(Array.isArray(x) ? h('a', { href: x[1] }, x[0]) : h('span', {}, x));
+  });
+  return h('header', { class: 'pagina-cabeca' },
+    h('div', { class: 'pagina-linha' }, h('p', { class: 'trilha' }, icone('bx-home-alt'), itens), acao || null),
+    titulo ? h('h1', {}, titulo) : null,
+    extra || null);
+}
+
 /** Cartão com título, subtítulo, ações à direita e corpo. */
 export function cartao({ titulo, sub, acoes, classe = '', corpo, nota, id }) {
   return h('section', { class: `cartao ${classe}`, id },
-    titulo ? h('header', { class: 'cartao-cabeca' }, h('div', {}, h('h2', {}, titulo), sub ? h('small', {}, sub) : null), acoes || null) : null,
+    titulo ? h('header', { class: 'cartao-cabeca' }, h('div', {}, h('h2', {}, titulo), sub ? h('small', {}, maiuscula(sub)) : null), acoes || null) : null,
     corpo,
     nota ? h('p', { class: 'cartao-nota' }, nota) : null);
 }
@@ -64,7 +84,7 @@ export function kpi({ rotulo, valor, iconeNome, anel, pe, serie }) {
     h('span', { class: 'kpi-rotulo' }, rotulo),
     h('span', { class: 'kpi-valor' }, valor),
     visual,
-    h('span', { class: 'kpi-pe' }, h('span', {}, pe || ''), serie ? sparkline(serie) : null));
+    h('span', { class: 'kpi-pe' }, h('span', {}, maiuscula(pe || '')), serie ? sparkline(serie) : null));
 }
 
 export const tituloSecao = (id, iconeNome, texto) =>
@@ -79,6 +99,36 @@ export const paragrafos = (texto) => (texto || '').split(/\n+/).map((p) => p.tri
 export const seloNivel = (nivel) => h('span', { class: `selo selo-${nivel}` }, t(`nivel.${nivel}`));
 
 /**
+ * Link para a matéria no site original. O índice não guarda URLs (fica menor); o endereço vem do
+ * arquivo do mês, buscado ao passar o mouse/focar (e, se ainda não chegou, no próprio clique, numa aba
+ * aberta na hora — assim o navegador não bloqueia como pop-up).
+ */
+function linkOriginal(idx, i, rotuloTexto) {
+  const id = idx.dados.id[i];
+  const mes = idx.dados.d[i] ? idx.dados.d[i].slice(0, 7) : 'sem-data';
+  const a = h('a', { class: 'link-fonte', href: '#', target: '_blank', rel: 'noopener noreferrer', title: t('materia.fonte') },
+    rotuloTexto, icone('bx-link-external'));
+  let url = null;
+  const resolver = async () => {
+    if (url) return url;
+    const textos = await carregar(`textos/noticias/${mes}.json`);
+    url = textos?.[id]?.url || null;
+    if (url) a.href = url;
+    return url;
+  };
+  a.addEventListener('pointerenter', resolver, { once: true });
+  a.addEventListener('focus', resolver, { once: true });
+  a.addEventListener('click', async (ev) => {
+    if (url) return;                                     // href já é o original
+    ev.preventDefault();
+    const aba = window.open('about:blank', '_blank');
+    const destino = await resolver();
+    if (aba) { aba.opener = null; if (destino) aba.location = destino; else aba.close(); }
+  });
+  return a;
+}
+
+/**
  * Tabela de matérias com paginação. posicoes = índices no índice de notícias (já ordenados).
  */
 export function tabelaMaterias(idx, dic, posicoes, porPagina = 10) {
@@ -91,7 +141,7 @@ export function tabelaMaterias(idx, dic, posicoes, porPagina = 10) {
       const site = dic.sites[idx.dados.s[i]];
       return h('tr', {},
         h('td', {}, h('a', { class: 'titulo-link', href: `#/materia/${idx.dados.id[i]}` }, idx.dados.t[i])),
-        h('td', {}, site?.nome || ''),
+        h('td', {}, linkOriginal(idx, i, site?.nome || '')),
         h('td', {}, h('span', { class: 'pais' }, site?.pais || '')),
         h('td', { style: { whiteSpace: 'nowrap' } }, dataCurta(idx.dados.d[i])),
         h('td', {}, seloNivel(dic.niveis[idx.dados.r[i]])),
@@ -108,7 +158,7 @@ export function tabelaMaterias(idx, dic, posicoes, porPagina = 10) {
   if (!posicoes.length) return h('p', { class: 'vazio' }, t('sem_dados'));
   return h('div', {},
     h('div', { class: 'tabela-caixa' }, h('table', { class: 'tabela' },
-      h('thead', {}, h('tr', {}, ['tab.titulo', 'tab.fonte', 'tab.pais', 'tab.data', 'tab.nivel', 'tab.idioma'].map((k) => h('th', {}, t(k))))),
+      h('thead', {}, h('tr', {}, ['tab.titulo', 'tab.fonte_link', 'tab.pais', 'tab.data', 'tab.nivel', 'tab.idioma'].map((k) => h('th', {}, t(k))))),
       corpo)),
     rodape);
 }

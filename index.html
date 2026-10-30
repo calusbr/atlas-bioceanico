@@ -3,8 +3,8 @@
   @file: index.html
   @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
   @data_criacao: 2026-10-25
-  @ultima_modificacao: 2026-10-26
-  @versao: 0.3.0
+  @ultima_modificacao: 2026-10-30
+  @versao: 0.7.0
   @descricao: Casca do Atlas Bioceânico (GitHub Pages, sem etapa de build). Cabeçalho fixo com busca e
               preferências, barra lateral com as seções e subitens, área de conteúdo trocada pelo
               roteador (assets/js/roteador.js) e rodapé. Bibliotecas por CDN com versão fixa (import map).
@@ -105,10 +105,11 @@
         <li class="menu-grupo" data-secao="gestao">
           <a class="menu-item" href="#/gestao"><i class="bx bx-building-house"></i><span data-i18n="nav.gestao">Gestão de Projeto</span><i class="bx bx-chevron-down seta"></i></a>
           <ul class="submenu">
+            <li><a href="#/gestao/documentos" data-i18n="sub.documentos">Documentos oficiais</a></li>
+            <li><a href="#/gestao/mapa" data-i18n="sub.mapa_docs">Mapa dos documentos</a></li>
             <li><a href="#/gestao/divulgado" data-i18n="sub.divulgado">Divulgado × realizado</a></li>
             <li><a href="#/gestao/avanco" data-i18n="sub.avanco">Avanço por trecho</a></li>
             <li><a href="#/gestao/fatos" data-i18n="sub.fatos">Linha do tempo de fatos</a></li>
-            <li><a href="#/gestao/documentos" data-i18n="sub.documentos">Documentos oficiais</a></li>
           </ul>
         </li>
         <li class="menu-grupo" data-secao="agente">
@@ -124,13 +125,12 @@
             <li><a href="#/sobre/projeto" data-i18n="sub.projeto">O projeto</a></li>
             <li><a href="#/sobre/fontes" data-i18n="sub.lista_fontes">Fontes monitoradas</a></li>
             <li><a href="#/sobre/metodo" data-i18n="sub.metodo">Metodologia</a></li>
-            <li><a href="#/sobre/dados" data-i18n="sub.dados">Dados abertos</a></li>
           </ul>
         </li>
       </ul>
     </nav>
     <div class="lateral-rodape">
-      <span class="selo-fase">Fase B</span>
+      <span class="selo-fase">Fase E</span>
       <span id="lateral-versao"></span>
     </div>
   </aside>

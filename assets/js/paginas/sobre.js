@@ -2,14 +2,14 @@
  * @file: assets/js/paginas/sobre.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-26
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
- * @descricao: SOBRE (#/sobre[/projeto|fontes|metodo|dados]): o projeto, as fontes monitoradas (tabela
- *             com matérias e % sobre a obra por fonte), a metodologia da PARTE 1 e os dados abertos
- *             (arquivos da exportação v3 com tamanho e link direto).
+ * @ultima_modificacao: 2026-10-28
+ * @versao: 0.4.0
+ * @descricao: SOBRE (#/sobre[/projeto|fontes|metodo]): o projeto, as fontes monitoradas (tabela com
+ *             matérias e % sobre a obra por fonte) e a metodologia da PARTE 1. A seção de dados abertos
+ *             volta depois da homologação do projeto.
  * @requisitos: dados v3.
  */
-import { carregarManifest, carregar, urlDados } from '../dados/carregador.js';
+import { carregarManifest, carregar } from '../dados/carregador.js';
 import { representante } from '../dados/consultas.js';
 import { t, numero, pct, dataCurta, idiomaAtual } from '../i18n.js';
 import { h, icone, cartao, tituloSecao, carregando, erro } from '../ui/dom.js';
@@ -29,8 +29,6 @@ const TXT = {
       ['Documentos oficiais', 'PDFs (atas, declarações, informes) são baixados, convertidos em texto (com OCR quando digitalizados), divididos em trechos e enriquecidos com o mesmo esquema.'],
       ['Limitações', 'As extrações são automáticas e por regras: há ruído. Por isso todo número leva à frase e à matéria de origem, com o link para a fonte original.'],
     ],
-    colunas: ['Camada', 'Arquivos', 'Tamanho'],
-    dados: 'Todos os arquivos usados pelo site são abertos (formato descrito em docs/CONTRATO_DADOS.md no repositório). O texto das matérias é republicado com o link para a fonte original, para fins acadêmicos.',
   },
   es: {
     projeto: [
@@ -46,12 +44,9 @@ const TXT = {
       ['Documentos oficiales', 'Los PDF (actas, declaraciones, informes) se descargan, se convierten en texto (con OCR si están escaneados), se dividen en fragmentos y se enriquecen con el mismo esquema.'],
       ['Limitaciones', 'Las extracciones son automáticas y por reglas: hay ruido. Por eso cada número lleva a la frase y a la noticia de origen, con el enlace a la fuente original.'],
     ],
-    colunas: ['Capa', 'Archivos', 'Tamaño'],
-    dados: 'Todos los archivos usados por el sitio son abiertos (formato descrito en docs/CONTRATO_DADOS.md en el repositorio). El texto de las noticias se republica con el enlace a la fuente original, con fines académicos.',
   },
 };
 
-const tamanho = (b) => (b >= 1e6 ? `${numero(b / 1e6, { maximumFractionDigits: 1 })} MB` : `${numero(Math.max(1, Math.round(b / 1e3)))} kB`);
 
 export async function montar(alvo) {
   alvo.append(carregando());
@@ -84,15 +79,6 @@ export async function montar(alvo) {
       h('td', { style: { whiteSpace: 'nowrap' } }, dataCurta(v.ult)));
   });
 
-  // dados abertos: arquivos agrupados por camada
-  const camadas = new Map();
-  for (const [rel, a] of Object.entries(m.arquivos)) {
-    const c = rel.includes('/') ? rel.split('/').slice(0, rel.startsWith('textos/') ? 2 : 1).join('/') : rel;
-    const g = camadas.get(c) || { arquivos: 0, bytes: 0, gz: 0, exemplo: rel };
-    g.arquivos += 1; g.bytes += a.bytes; g.gz += a.bytes_gz;
-    camadas.set(c, g);
-  }
-
   alvo.replaceChildren(
     h('div', { class: 'pagina-topo' }, h('div', {},
       h('p', { class: 'trilha' }, icone('bx-home-alt'), t('nav.sobre')),
@@ -105,14 +91,6 @@ export async function montar(alvo) {
       h('tbody', {}, linhasFontes))) })),
     tituloSecao('metodo', 'bx-git-branch', t('sub.metodo')),
     h('div', { class: 'recursos', style: { marginBottom: '20px' } }, X.metodo.map(([tit, txt], j) => h('article', { class: 'cartao recurso' },
-      icone(['bx-radar', 'bx-target-lock', 'bx-copy-alt', 'bx-brain', 'bx-file', 'bx-error'][j]), h('h3', {}, tit), h('p', {}, txt)))),
-    tituloSecao('dados', 'bx-data', t('sub.dados')),
-    h('div', { class: 'grade' }, cartao({ classe: 'c-12', nota: X.dados, corpo: h('div', { class: 'tabela-caixa' }, h('table', { class: 'tabela' },
-      h('thead', {}, h('tr', {}, [...X.colunas, 'gzip', ''].map((x, j) => h('th', { class: j && j < 4 ? 'num' : null }, x)))),
-      h('tbody', {}, [...camadas.entries()].map(([c, g]) => h('tr', {},
-        h('td', {}, h('code', {}, c)), h('td', { class: 'num' }, numero(g.arquivos)), h('td', { class: 'num' }, tamanho(g.bytes)),
-        h('td', { class: 'num' }, tamanho(g.gz)),
-        h('td', {}, h('a', { class: 'botao botao-pequeno botao-fantasma', href: urlDados(g.exemplo), target: '_blank' }, icone('bx-download'), 'JSON'))))))) })),
-    h('p', { class: 'cartao-nota' }, `manifest.json · ${dataCurta(m.gerado_em.slice(0, 10))} · contrato ${m.contrato} · schema ${m.schema_version}`));
+      icone(['bx-radar', 'bx-target-lock', 'bx-copy-alt', 'bx-brain', 'bx-file', 'bx-error'][j]), h('h3', {}, tit), h('p', {}, txt)))));
   return { rolar: (id) => document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) };
 }

@@ -51,9 +51,9 @@ assets/js/main.js             barra lateral, menus, tema, idioma, busca, tela ch
 assets/js/roteador.js         rotas por hash (#/dashboard/secao, #/materia/<id>, #/busca/<termo>, #/sobre…)
 assets/js/i18n.js             textos PT (padrão) e ES
 assets/js/rotulos.js          nomes PT/ES de temas, países, trechos, tipos de valor/evento
-assets/js/dados/              carregador (manifest + IndexedDB), consultas (agregações), idb
+assets/js/dados/              carregador (manifest + IndexedDB), consultas (agregações), gestao (documentos oficiais), idb
 assets/js/ui/                 dom (componentes), graficos (ECharts), mapa (MapLibre), tema
-assets/js/paginas/            dashboard, materia, busca, sobre, futura (seções das próximas fases)
+assets/js/paginas/            dashboard, materia, busca, sobre, gestao, futura (seções das próximas fases)
 dados/                        exportação v3 (gerada pela PARTE 1 — não editar à mão)
 docs/CONTRATO_DADOS.md        formato dos dados
 scripts/                      servir (local), publicar-dados
@@ -67,7 +67,7 @@ scripts/                      servir (local), publicar-dados
 | Matéria / Busca | texto integral com link para a fonte e dados extraídos; busca por título | B ✅ |
 | Sobre | projeto, fontes monitoradas, metodologia, dados abertos | B ✅ |
 | Semântico | mapa de assuntos, grafo de atores, busca por significado | D |
-| Gestão de Projeto | divulgado × realizado, avanço por trecho, linha do tempo de fatos, documentos | E |
+| Gestão de Projeto | centrada nos documentos oficiais do Corredor Bioceânico (corredorbioceanico.org): filtros (fonte, período, trecho, país); 4 indicadores só de PDFs (investimento citado, % concluída, obras entregues, prazos); acervo com categorias (atas, declarações, relatórios, estudos, boletins…), busca por palavras e ficha do documento com link para o PDF oficial; mapa dos lugares citados; divulgado × realizado (linhas acumuladas, prazo prometido × data do anúncio, avanço por trecho) e linha do tempo de fatos — com opção de incluir as matérias | E ✅ (v0.7) |
 | Agente | conversa com citações (GraphRAG) e sala ao vivo (Cloudflare Worker / Durable Objects) | F |
 
 Visual: glassmorphism escuro com acento neon (referências: Dashtreme e Artifice), modos escuro e claro,

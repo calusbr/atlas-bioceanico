@@ -2,8 +2,8 @@
  * @file: assets/js/rotulos.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-26
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-29
+ * @versao: 0.5.0
  * @descricao: Nomes legíveis (PT/ES) dos códigos de dic.json: temas, países, trechos (forma curta para
  *             gráficos), tipos de valor, tipos de evento e tipos de documento. Código desconhecido
  *             volta como veio — uma categoria nova na PARTE 1 não quebra o site.
@@ -26,6 +26,8 @@ const R = {
     educacao_pesquisa: ['Educação e pesquisa', 'Educación e investigación'],
     energia_mineracao: ['Energia e mineração', 'Energía y minería'],
     emprego_desenvolvimento: ['Emprego e desenvolvimento', 'Empleo y desarrollo'],
+    tributacao_regulacao: ['Tributos e regulação', 'Tributos y regulación'],
+    servicos_comercio: ['Comércio e serviços', 'Comercio y servicios'],
   },
   pais: {
     BR: ['Brasil', 'Brasil'], PY: ['Paraguai', 'Paraguay'], AR: ['Argentina', 'Argentina'], CL: ['Chile', 'Chile'],
@@ -50,6 +52,10 @@ const R = {
     executado: ['Executado/pago', 'Ejecutado/pagado'],
     economico: ['Indicador econômico', 'Indicador económico'],
     outro: ['Sem tipo', 'Sin tipo'],
+  },
+  promessa: {
+    conclusao: ['Conclusão', 'Conclusión'], operacao: ['Início da operação', 'Inicio de operación'], inicio: ['Início da obra', 'Inicio de obra'],
+    licitacao: ['Licitação', 'Licitación'], previsao: ['Outra previsão', 'Otra previsión'],
   },
   evento: {
     inauguracao: ['Inauguração', 'Inauguración'], conclusao: ['Conclusão', 'Conclusión'], entrega: ['Entrega', 'Entrega'],

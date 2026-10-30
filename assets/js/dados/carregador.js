@@ -2,8 +2,8 @@
  * @file: assets/js/dados/carregador.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-30
+ * @versao: 0.7.0
  * @descricao: Acesso à pasta dados/ (exportação v3 da PARTE 1, docs/CONTRATO_DADOS.md).
  *               - manifest.json é sempre buscado na rede (sem cache); offline, usa a última cópia;
  *               - cada arquivo: memória → IndexedDB (se o SHA-256 do manifest bate) → rede, então uma
@@ -85,6 +85,15 @@ export async function carregarPainel() {
     carregarManifest(), carregar('dic.json'), carregar('indice/noticias.json'), carregar('indice/pdfs.json'),
     carregar('gestao/valores.json'), carregar('gestao/percentuais.json'), carregar('gestao/eventos.json')]);
   return { m, dic, idx, pdfs, valores, percentuais, eventos };
+}
+
+/** Os arquivos da Gestão de Projeto (contrato 3.3: fatos dos PDFs; 3.2: promessas). */
+export async function carregarGestao() {
+  const [m, dic, pdfs, fatos, valores, percentuais, eventos, promessas] = await Promise.all([
+    carregarManifest(), carregar('dic.json'), carregar('indice/pdfs.json'), carregar('gestao/pdf_fatos.json'),
+    carregar('gestao/valores.json'), carregar('gestao/percentuais.json'), carregar('gestao/eventos.json'),
+    carregar('gestao/promessas.json')]);
+  return { m, dic, pdfs, fatos, valores, percentuais, eventos, promessas };
 }
 
 export const urlDados = (rel) => BASE + rel;

@@ -2,8 +2,8 @@
  * @file: assets/js/paginas/dashboard.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-26
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-30
+ * @versao: 0.5.1
  * @descricao: DASHBOARD (página inicial). Filtros (período, país da fonte, relevância, idioma) e sete
  *             seções, cada uma ligada a um subitem da barra lateral:
  *               visao      8 indicadores com minigráfico / anel de %
@@ -19,9 +19,9 @@
  */
 import { carregarPainel, ErroContrato } from '../dados/carregador.js';
 import { agregar, criarFiltro, anosDisponiveis, filtrarGestao, caixasPorTrecho, avancoPonte } from '../dados/consultas.js';
-import { t, numero, pct, mesAno, nomesMeses } from '../i18n.js';
-import { h, icone, cartao, kpi, tituloSecao, carregando, erro, tabelaMaterias } from '../ui/dom.js';
-import { grafico, grade, eixoCategoria, eixoValor, gradiente, comAlfa } from '../ui/graficos.js';
+import { t, numero, pct, mesAno, nomesMeses, dataCurta } from '../i18n.js';
+import { h, icone, cartao, kpi, tituloSecao, carregando, erro, tabelaMaterias, cabecalhoPagina } from '../ui/dom.js';
+import { grafico, grade, eixoCategoria, eixoValor, gradiente, comAlfa, rampaAcento, RAMPA_ACENTO } from '../ui/graficos.js';
 import { montarMapa } from '../ui/mapa.js';
 import { rotulo } from '../rotulos.js';
 import { navegar } from '../roteador.js';
@@ -38,9 +38,9 @@ export async function montar(alvo) {
     alvo.replaceChildren(erro(e instanceof ErroContrato ? t('erro.contrato', { versao: e.versao }) : t('erro.dados'), () => location.reload()));
     return null;
   }
-  const { dic, idx, pdfs, valores, percentuais, eventos } = D;
+  const { m, dic, idx, pdfs, valores, percentuais, eventos } = D;
   const faixaAnos = anosDisponiveis(idx);
-  const f = filtroSalvo || (filtroSalvo = { de: faixaAnos[0], ate: faixaAnos[1], pais: '', nivel: '', idioma: '' });
+  const f = filtroSalvo || (filtroSalvo = { de: faixaAnos[0], ate: faixaAnos[1], pais: '', site: '', nivel: '', idioma: '' });
   const niveis = dic.niveis;
   const ponte = avancoPonte(percentuais);
 
@@ -60,6 +60,7 @@ export async function montar(alvo) {
       const d = pdfs.dados.d[i];
       const pais = dic.sites[pdfs.dados.s[i]]?.pais || '';
       if (f.pais && pais !== f.pais) continue;
+      if (f.site !== '' && pdfs.dados.s[i] !== Number(f.site)) continue;
       if (d && (d.slice(0, 4) < String(f.de) || d.slice(0, 4) > String(f.ate))) continue;
       out.push(i);
     }
@@ -79,23 +80,37 @@ export async function montar(alvo) {
     return s;
   };
   const paisesFonte = [...new Set(dic.sites.map((s) => s.pais).filter(Boolean))];
-  const resumo = h('span', { class: 'filtros-resumo' });
+  // fontes com matérias no índice, agrupadas por país (optgroup)
+  const comMaterias = new Set(idx.dados.s);
+  const selSite = h('select', { class: 'campo', onchange: (ev) => { f.site = ev.target.value; aplicar(); } },
+    h('option', { value: '' }, t('filtro.todos')),
+    paisesFonte.map((p) => h('optgroup', { label: rotulo('pais', p) },
+      dic.sites.map((st, k) => [st, k]).filter(([st, k]) => st.pais === p && comMaterias.has(k))
+        .sort((a, b) => a[0].nome.localeCompare(b[0].nome))
+        .map(([st, k]) => h('option', { value: k, selected: String(k) === String(f.site) }, st.nome)))));
+  const resumoNum = h('b');
+  const resumo = h('div', { class: 'filtros-resumo', role: 'status' }, icone('bx-filter-alt'), resumoNum, h('span', {}, t('filtro.resumo')));
   const aplicar = () => { recalcular(); atualizarTudo(); };
+  // cada filtro: rótulo pequeno em cima e o campo embaixo (todos na mesma linha no computador)
+  const campo = (ic, rot, ...controles) => h('label', { class: 'filtro' },
+    h('span', { class: 'filtro-rotulo' }, icone(ic), rot), h('span', { class: 'filtro-controles' }, controles));
   const filtros = h('div', { class: 'cartao filtros', role: 'group', 'aria-label': t('filtro.periodo') },
-    h('label', {}, icone('bx-calendar'), t('filtro.periodo'),
-      sel(f.de, opcoesAno().map((a) => [a, a]).reverse(), (v) => { f.de = Number(v); if (f.de > f.ate) f.ate = f.de; aplicar(); }),
-      t('filtro.ate'),
-      sel(f.ate, opcoesAno().map((a) => [a, a]), (v) => { f.ate = Number(v); if (f.ate < f.de) f.de = f.ate; aplicar(); })),
-    h('label', {}, icone('bx-world'), t('filtro.pais'),
-      sel(f.pais, [['', t('filtro.todos')], ...paisesFonte.map((p) => [p, rotulo('pais', p)])], (v) => { f.pais = v; aplicar(); })),
-    h('label', {}, icone('bx-target-lock'), t('filtro.nivel'),
-      sel(f.nivel, [['', t('filtro.todos')], ...niveis.filter((n) => n !== 'ruido').map((n) => [n, t(`nivel.${n}`)])], (v) => { f.nivel = v; aplicar(); })),
-    h('label', {}, icone('bx-globe'), t('filtro.idioma'),
-      sel(f.idioma, [['', t('filtro.todos')], ...dic.idiomas.map((l) => [l, l.toUpperCase()])], (v) => { f.idioma = v; aplicar(); })),
-    h('button', { class: 'botao botao-pequeno botao-fantasma', onclick: () => {
-      Object.assign(f, { de: faixaAnos[0], ate: faixaAnos[1], pais: '', nivel: '', idioma: '' });
-      navegar(true);                                       // remonta a página com os selects zerados
-    } }, icone('bx-reset'), t('filtro.limpar')),
+    h('div', { class: 'filtros-campos' },
+      campo('bx-calendar', t('filtro.periodo'),
+        sel(f.de, opcoesAno().map((a) => [a, a]).reverse(), (v) => { f.de = Number(v); if (f.de > f.ate) f.ate = f.de; aplicar(); }),
+        h('span', { class: 'filtro-ate' }, t('filtro.ate')),
+        sel(f.ate, opcoesAno().map((a) => [a, a]), (v) => { f.ate = Number(v); if (f.ate < f.de) f.de = f.ate; aplicar(); })),
+      campo('bx-world', t('filtro.pais'),
+        sel(f.pais, [['', t('filtro.todos')], ...paisesFonte.map((p) => [p, rotulo('pais', p)])], (v) => { f.pais = v; aplicar(); })),
+      campo('bx-broadcast', t('filtro.fonte'), selSite),
+      campo('bx-target-lock', t('filtro.nivel'),
+        sel(f.nivel, [['', t('filtro.todos')], ...niveis.filter((n) => n !== 'ruido').map((n) => [n, t(`nivel.${n}`)])], (v) => { f.nivel = v; aplicar(); })),
+      campo('bx-globe', t('filtro.idioma'),
+        sel(f.idioma, [['', t('filtro.todos')], ...dic.idiomas.map((l) => [l, l.toUpperCase()])], (v) => { f.idioma = v; aplicar(); })),
+      h('button', { class: 'botao botao-pequeno botao-fantasma filtros-limpar', type: 'button', onclick: () => {
+        Object.assign(f, { de: faixaAnos[0], ate: faixaAnos[1], pais: '', site: '', nivel: '', idioma: '' });
+        navegar(true);                                     // remonta a página com os selects zerados
+      } }, icone('bx-reset'), t('filtro.limpar'))),
     resumo);
 
   /* ------------------------------------------------------------------ esqueleto */
@@ -103,7 +118,7 @@ export async function montar(alvo) {
   const el = (classe = 'grafico') => h('div', { class: classe });
   const E = {
     tempo: el('grafico grafico-alto'), paises: el('grafico grafico-alto'), anos: el(), calor: el(),
-    fontes: el(), dispersao: el(), histograma: el(), radar: el('grafico grafico-alto'), temas: el('grafico grafico-alto'),
+    fontes: el('grafico grafico-alto'), dispersao: el('grafico grafico-alto'), histograma: el('grafico grafico-baixo'), radar: el('grafico grafico-alto'), temas: el('grafico grafico-alto'),
     boxplot: el(), ponte: el(), tiposValor: el(), eventos: el(),
   };
   const cxTrechos = h('div', { class: 'cartao-corpo' });
@@ -120,10 +135,13 @@ export async function montar(alvo) {
   };
 
   alvo.replaceChildren(
-    h('div', { class: 'pagina-topo' },
-      h('div', {}, h('p', { class: 'trilha' }, icone('bx-home-alt'), t('nav.dashboard'), icone('bx-chevron-right'), t('sub.visao')),
-        h('h1', {}, t('dash.titulo')), h('p', {}, t('dash.sub'))),
-      h('a', { class: 'botao', href: '#/sobre/dados' }, icone('bx-download'), t('sub.dados'))),
+    cabecalhoPagina({
+      trilha: [t('nav.dashboard'), t('sub.visao')],
+      titulo: t('dash.titulo'),
+      acao: h('button', { class: 'botao botao-info', type: 'button', title: t('dados.titulo'),
+        onclick: (ev) => { ev.stopPropagation(); document.getElementById('botao-dados')?.click(); } },
+        icone('bx-time-five'), t('dados.atualizado', { data: dataCurta(m.gerado_em.slice(0, 10)) })),
+    }),
     filtros,
     tituloSecao('visao', 'bx-pulse', t('sec.visao')), cxKpis,
     tituloSecao('cobertura', 'bx-line-chart', t('sec.cobertura')),
@@ -139,16 +157,19 @@ export async function montar(alvo) {
       cartao({ classe: 'c-4', titulo: t('g.trechos'), sub: t('g.trechos.sub'), corpo: cxTrechos })),
     tituloSecao('fontes', 'bx-broadcast', t('sec.fontes')),
     h('div', { class: 'grade' },
-      cartao({ classe: 'c-4', titulo: t('g.top_fontes'), sub: t('g.top_fontes.sub'), corpo: E.fontes }),
-      cartao({ classe: 'c-4', titulo: t('g.dispersao'), sub: t('g.dispersao.sub'), corpo: E.dispersao }),
-      cartao({ classe: 'c-4', titulo: t('g.histograma'), sub: t('g.histograma.sub'), corpo: E.histograma })),
+      cartao({ classe: 'c-6', titulo: t('g.top_fontes'), sub: t('g.top_fontes.sub'), corpo: E.fontes }),
+      cartao({ classe: 'c-6', titulo: t('g.dispersao'), sub: t('g.dispersao.sub'), corpo: E.dispersao })),
+    h('div', { class: 'grade' },
+      cartao({ classe: 'c-12', titulo: t('g.histograma'), sub: t('g.histograma.sub'), corpo: E.histograma })),
     tituloSecao('temas', 'bx-category', t('sec.temas')),
     h('div', { class: 'grade' },
       cartao({ classe: 'c-7', titulo: t('g.radar'), sub: t('g.radar.sub'), corpo: E.radar }),
       cartao({ classe: 'c-5', titulo: t('g.temas'), sub: t('g.temas.sub'), corpo: E.temas })),
     tituloSecao('obra', 'bx-hard-hat', t('sec.obra')),
     h('div', { class: 'grade' },
-      cartao({ classe: 'c-6', titulo: t('g.boxplot'), sub: t('g.boxplot.sub'), corpo: E.boxplot }),
+      cartao({ classe: 'c-6', titulo: t('g.boxplot'), sub: t('g.boxplot.sub'), corpo: E.boxplot,
+        nota: h('span', { class: 'semaforo' }, t('semaforo.titulo'),
+          [1, 2, 3, 4].map((k) => h('span', {}, h('i', { class: `sem-${k}` }), t(`semaforo.${k}`)))) }),
       cartao({ classe: 'c-6', titulo: t('g.avanco'), sub: t('g.avanco.sub'), corpo: E.ponte })),
     h('div', { class: 'grade' },
       cartao({ classe: 'c-6', titulo: t('g.tipos_valor'), sub: t('g.tipos_valor.sub'), corpo: E.tiposValor }),
@@ -184,11 +205,14 @@ export async function montar(alvo) {
       kpi({ rotulo: t('kpi.ponte'), valor: ponte.mediana != null ? `${numero(Math.round(ponte.mediana))}%` : '—',
         anel: ponte.mediana ?? 0, pe: t('kpi.ponte.pe', { mes: mesAno(ponte.ate) }) }));
     [...cxKpis.children].forEach((c) => c.classList.add('c-3'));
-    resumo.innerHTML = t('filtro.resumo', { n: numero(A.total) });
+    resumoNum.textContent = numero(A.total);
   };
 
   /* ------------------------------------------------------------------ opções dos gráficos */
   const nomeNivel = (n) => t(`nivel.${n}`);
+  const rotuloFatia = (p) => ({ show: true, position: 'inside', color: '#fff', fontWeight: 600, fontSize: 11,
+    textBorderColor: 'rgba(0,0,0,.45)', textBorderWidth: 2,
+    formatter: (x) => (x.percent >= 4 ? `${numero(x.percent, { maximumFractionDigits: 0 })}%` : '') });
   const niveisVis = niveis.filter((n) => n !== 'ruido');
 
   const opTempo = (p) => {
@@ -221,8 +245,8 @@ export async function montar(alvo) {
       legend: { bottom: 0, top: 'auto' },
       title: { text: numero(A.total), subtext: t('eixo.materias'), left: 'center', top: '38%',
         textStyle: { color: p.texto, fontFamily: 'Orbitron', fontSize: 20, fontWeight: 600 }, subtextStyle: { color: p.texto2 } },
-      series: [{ type: 'pie', radius: ['52%', '74%'], center: ['50%', '45%'], padAngle: 2, itemStyle: { borderRadius: 6 },
-        label: { show: false }, emphasis: { scale: true, scaleSize: 6 }, data: dados }],
+      series: [{ type: 'pie', radius: ['50%', '78%'], center: ['50%', '45%'], padAngle: 2, itemStyle: { borderRadius: 6 },
+        label: rotuloFatia(p), labelLine: { show: false }, emphasis: { scale: true, scaleSize: 6 }, data: dados }],
     };
   };
 
@@ -253,7 +277,7 @@ export async function montar(alvo) {
       xAxis: eixoCategoria(p, nomesMeses(), { splitArea: { show: false } }),
       yAxis: eixoCategoria(p, anos, { axisLabel: { color: p.texto2, fontSize: 10 } }),
       visualMap: { min: 0, max, calculable: false, orient: 'horizontal', left: 'center', bottom: 0, itemHeight: 120, itemWidth: 10,
-        textStyle: { color: p.texto2 }, inRange: { color: [comAlfa(p.acento, 0.06), comAlfa(p.acento, 0.5), p.acento] } },
+        textStyle: { color: p.texto2 }, inRange: { color: RAMPA_ACENTO.map((a) => comAlfa(p.acento, a)) } },
       series: [{ type: 'heatmap', data: dados, itemStyle: { borderColor: p.fundo, borderWidth: 2, borderRadius: 3 },
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: p.acento } } }],
     };
@@ -278,21 +302,29 @@ export async function montar(alvo) {
 
   const opDispersao = (p) => {
     const porPais = new Map();
-    for (const [s, v] of A.porSite) {
-      const site = dic.sites[s]; const pais = site?.pais || '?';
+    for (const [st, v] of A.porSite) {
+      const site = dic.sites[st]; const pais = site?.pais || '?';
       if (!porPais.has(pais)) porPais.set(pais, []);
-      porPais.get(pais).push([v.n, Math.round((v.nucleo / v.n) * 100), site?.nome || s]);
+      porPais.get(pais).push([v.n, Math.round((v.nucleo / v.n) * 100), site?.nome || st]);
     }
     const max = Math.max(1, ...[...A.porSite.values()].map((v) => v.n));
+    const destaque = new Set([...A.porSite.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, 6)
+      .map(([st]) => dic.sites[st]?.nome || st));                // só as 6 maiores fontes ganham nome
+    const compacto = (v) => numero(v, { notation: 'compact', maximumFractionDigits: 1 });
     return {
-      tooltip: { formatter: (x) => `<b>${x.value[2]}</b><br>${numero(x.value[0])} ${t('eixo.materias')} · ${x.value[1]}% ${t('nivel.nucleo').toLowerCase()}` },
-      legend: { right: 8 },
-      grid: grade({ top: 40 }),
-      xAxis: eixoValor(p, { type: 'log', name: t('eixo.materias'), nameLocation: 'middle', nameGap: 26, nameTextStyle: { color: p.texto2 } }),
-      yAxis: eixoValor(p, { max: 100, name: t('eixo.pct_obra'), nameTextStyle: { color: p.texto2 } }),
+      tooltip: { formatter: (x) => `<b>${x.value[2]}</b><br>${numero(x.value[0])} ${t('eixo.materias')}<br>${x.value[1]}% ${t('nivel.nucleo').toLowerCase()}` },
+      legend: { bottom: 0, top: 'auto', left: 'center' },
+      grid: grade({ top: 34, bottom: 56, left: 16, right: 56 }),
+      xAxis: eixoValor(p, { type: 'log', min: 1, name: t('eixo.materias'), nameLocation: 'middle', nameGap: 28,
+        nameTextStyle: { color: p.texto2, fontSize: 12 }, axisLabel: { color: p.texto2, fontSize: 11, formatter: compacto } }),
+      yAxis: eixoValor(p, { min: 0, max: 100, name: t('eixo.pct_obra'), nameLocation: 'end', nameGap: 12,
+        nameTextStyle: { color: p.texto2, fontSize: 12, align: 'left' }, axisLabel: { color: p.texto2, fontSize: 11, formatter: '{value}%' } }),
       series: [...porPais.entries()].map(([pais, pts]) => ({ name: rotulo('pais', pais), type: 'scatter', data: pts,
-        symbolSize: (v) => 8 + 28 * Math.sqrt(v[0] / max), itemStyle: { opacity: 0.8, borderColor: p.fundo, borderWidth: 1 },
-        emphasis: { focus: 'series' } })),
+        symbolSize: (v) => 10 + 30 * Math.sqrt(v[0] / max), itemStyle: { opacity: 0.85, borderColor: p.fundo, borderWidth: 1 },
+        label: { show: true, position: 'top', distance: 6, fontSize: 10, color: p.texto2,
+          formatter: (x) => (destaque.has(x.value[2]) ? x.value[2] : '') },
+        labelLayout: { hideOverlap: true },
+        emphasis: { focus: 'series', label: { show: true, formatter: (x) => x.value[2] } } })),
     };
   };
 
@@ -301,12 +333,13 @@ export async function montar(alvo) {
     const rot = faixas.slice(0, -1).map((a, i) => (faixas[i + 1] === Infinity ? `${numero(a)}+` : `${numero(a)}–${numero(faixas[i + 1])}`));
     return {
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      grid: grade({ top: 16, bottom: 20 }),
-      xAxis: eixoCategoria(p, rot, { name: t('eixo.palavras'), nameLocation: 'middle', nameGap: 28, nameTextStyle: { color: p.texto2 },
-        axisLabel: { color: p.texto2, fontSize: 10, rotate: 35 } }),
+      grid: grade({ top: 16, bottom: 4 }),
+      xAxis: eixoCategoria(p, rot, { axisLabel: { color: p.texto2, fontSize: 11, interval: 0 } }),
       yAxis: eixoValor(p),
-      series: [{ type: 'bar', data: v, barCategoryGap: '4%', name: t('eixo.materias'),
-        itemStyle: { color: gradiente(p.series[2], 0.9), borderRadius: [4, 4, 0, 0] } }],
+      // mesma rampa do calendário de cobertura: acento translúcido (poucas) → acento pleno (muitas)
+      series: [{ type: 'bar', barCategoryGap: '4%', name: t('eixo.materias'),
+        data: v.map((n) => ({ value: n, itemStyle: { color: rampaAcento(p, n / (Math.max(...v) || 1)) } })),
+        itemStyle: { borderRadius: [4, 4, 0, 0] } }],
     };
   };
 
@@ -346,19 +379,36 @@ export async function montar(alvo) {
     };
   };
 
+  // faixas pela mediana do % divulgado, na rampa do calendário: até 40 (tom frio, translúcido) → 90+ (acento pleno)
+  const ALFA_FAIXA = [0.3, 0.55, 0.8, 1];
+  const faixa = (v) => (v >= 90 ? 3 : v >= 70 ? 2 : v >= 40 ? 1 : 0);
+  const corSemaforo = (v, p) => comAlfa(p.acento, ALFA_FAIXA[faixa(v)]);
+  const semaforoRotulo = (v) => t(`box.s${v >= 90 ? 4 : v >= 70 ? 3 : v >= 40 ? 2 : 1}`);
   const opBoxplot = (p) => {
     const caixas = caixasPorTrecho(percentuais, G.percentuais).slice(0, 7);
     return {
-      tooltip: { trigger: 'item', formatter: (x) => {
+      tooltip: { trigger: 'item', confine: true, padding: [10, 14], formatter: (x) => {
         if (x.seriesType !== 'boxplot') return '';
         const [, mi, q1, me, q3, ma] = x.value;
-        return `<b>${x.name}</b> · n=${caixas[x.dataIndex].n}<br>mín ${numero(mi)}% · Q1 ${numero(q1)}%<br>mediana <b>${numero(me)}%</b><br>Q3 ${numero(q3)}% · máx ${numero(ma)}%`;
+        const cor = corSemaforo(me, p);
+        const linha = (rot, v, forte) => `<tr><td style="padding:2px 14px 2px 0;opacity:.75">${rot}</td>`
+          + `<td style="text-align:right;font-variant-numeric:tabular-nums">${forte ? `<b>${numero(v)}%</b>` : `${numero(v)}%`}</td></tr>`;
+        return `<div style="font-weight:600;margin-bottom:4px">${x.name}</div>`
+          + `<div style="opacity:.75;margin-bottom:6px">${t('box.n', { n: numero(caixas[x.dataIndex].n) })}</div>`
+          + `<table style="border-collapse:collapse">${linha(t('box.maximo'), ma)}${linha(t('box.q3'), q3)}`
+          + `${linha(t('box.mediana'), me, true)}${linha(t('box.q1'), q1)}${linha(t('box.minimo'), mi)}</table>`
+          + `<div style="margin-top:6px;display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:${cor}"></span>`
+          + `${t('box.situacao')}: <b>${semaforoRotulo(me)}</b></div>`
+          + `<div style="margin-top:4px;opacity:.6;font-size:11px;max-width:240px;white-space:normal">${t('box.leitura')}</div>`;
       } },
       grid: grade({ top: 16 }),
       xAxis: eixoCategoria(p, caixas.map((c) => rotulo('trecho', c.trecho)), { axisLabel: { color: p.texto2, fontSize: 10, interval: 0, rotate: 20 } }),
       yAxis: eixoValor(p, { max: 100, axisLabel: { color: p.texto2, formatter: '{value}%' } }),
-      series: [{ type: 'boxplot', data: caixas.map((c) => c.caixa), boxWidth: ['30%', '55%'],
-        itemStyle: { color: comAlfa(p.acento, 0.18), borderColor: p.acento, borderWidth: 1.6 } }],
+      series: [{ type: 'boxplot', boxWidth: ['30%', '55%'],
+        data: caixas.map((c) => {
+          const a = ALFA_FAIXA[faixa(c.caixa[2])];
+          return { value: c.caixa, itemStyle: { color: comAlfa(p.acento, 0.08 + 0.22 * a), borderColor: comAlfa(p.acento, a), borderWidth: 1.8 } };
+        }) }],
     };
   };
 
@@ -396,7 +446,7 @@ export async function montar(alvo) {
       tooltip: { trigger: 'item', formatter: (x) => `${x.name}<br><b>${numero(x.value)}</b> · ${numero(x.percent, { maximumFractionDigits: 1 })}%` },
       legend: { orient: 'vertical', right: 8, top: 'middle' },
       series: [{ type: 'pie', radius: ['48%', '76%'], center: ['36%', '52%'], padAngle: 2, itemStyle: { borderRadius: 6 },
-        label: { show: false }, emphasis: { scale: true, scaleSize: 6 },
+        label: rotuloFatia(p), labelLine: { show: false }, emphasis: { scale: true, scaleSize: 6 },
         data: ordem.filter((k) => cont.get(k)).map((k) => ({ name: rotulo('valor', k), value: cont.get(k), itemStyle: { color: cores[k] } })) }],
     };
   };

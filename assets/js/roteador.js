@@ -2,14 +2,15 @@
  * @file: assets/js/roteador.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-30
+ * @versao: 0.6.0
  * @descricao: Rotas por hash (funcionam no GitHub Pages sem configurar servidor):
  *               #/dashboard[/secao]   página inicial (por enquanto) — o subitem rola até a seção
  *               #/materia/<id>        leitura de uma matéria
  *               #/busca/<termo>       busca por título
  *               #/sobre[/secao]       sobre o projeto, fontes, método, dados
- *               #/semantico | #/gestao | #/agente   seções das próximas fases
+ *               #/gestao[/secao]      Gestão de Projeto (Fase E)
+ *               #/semantico | #/agente   seções das próximas fases
  *             Cada página é um módulo carregado sob demanda com `montar(alvo, params)`, que pode
  *             devolver uma função de desmontagem. Trocar só o subitem da página atual apenas rola.
  * @requisitos: nenhum.
@@ -22,7 +23,7 @@ const PAGINAS = {
   busca: () => import('./paginas/busca.js'),
   sobre: () => import('./paginas/sobre.js'),
   semantico: () => import('./paginas/futura.js'),
-  gestao: () => import('./paginas/futura.js'),
+  gestao: () => import('./paginas/gestao.js'),
   agente: () => import('./paginas/futura.js'),
 };
 

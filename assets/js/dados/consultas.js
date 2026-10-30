@@ -2,8 +2,8 @@
  * @file: assets/js/dados/consultas.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-28
+ * @versao: 0.4.0
  * @descricao: Consultas sobre as tabelas colunares {colunas, n, dados}. `agregar()` percorre o índice
  *             UMA vez com o filtro do Dashboard e devolve tudo que os gráficos precisam (série mensal,
  *             anos, calendário, fontes, países, temas, lugares, trechos, histograma, recentes).
@@ -29,7 +29,7 @@ export function anosDisponiveis(idx) {
   return [Number(min), Number(max)];
 }
 
-/** Filtro do Dashboard → função (i) => boolean. f = {de, ate, pais, nivel, idioma}; null = todos. */
+/** Filtro do Dashboard → função (i) => boolean. f = {de, ate, pais, site, nivel, idioma}; '' = todos. */
 export function criarFiltro(idx, dic, f, [anoMin, anoMax]) {
   const paisSite = dic.sites.map((s) => s.pais);
   const periodoTotal = f.de <= anoMin && f.ate >= anoMax;
@@ -37,7 +37,9 @@ export function criarFiltro(idx, dic, f, [anoMin, anoMax]) {
   const idioma = f.idioma ? dic.idiomas.indexOf(f.idioma) : -1;
   const de = String(f.de), ate = `${f.ate}-99`;
   const { d, s, r, l } = idx.dados;
+  const site = f.site === '' || f.site == null ? -1 : Number(f.site);
   return (i) => {
+    if (site >= 0 && s[i] !== site) return false;
     if (nivel >= 0 && r[i] !== nivel) return false;
     if (idioma >= 0 && l[i] !== idioma) return false;
     if (f.pais && paisSite[s[i]] !== f.pais) return false;

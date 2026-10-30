@@ -2,8 +2,8 @@
  * @file: assets/js/ui/graficos.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-26
- * @versao: 0.3.0
+ * @ultima_modificacao: 2026-10-30
+ * @versao: 0.3.1
  * @descricao: Camada fina sobre o Apache ECharts (área, colunas, barras, rosca, radar, histograma,
  *             dispersão, box plot, mapa de calor). Cada gráfico é criado com uma função
  *             `opcoes(p)` que recebe a paleta do tema; ao trocar claro/escuro ou idioma todos são
@@ -81,4 +81,12 @@ export function comAlfa(cor, a) {
   if (!m) return cor;
   const n = parseInt(m[1], 16);
   return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+// Rampa do calendário de cobertura (acento translúcido → pleno), para x em [0, 1].
+// Piso de 0.15 para que barras pequenas continuem visíveis.
+export const RAMPA_ACENTO = [0.06, 0.5, 1];
+export function rampaAcento(p, x) {
+  const a = x <= 0.5 ? 0.06 + 0.88 * x : 0.5 + (x - 0.5);
+  return comAlfa(p.acento, Math.max(0.15, Math.min(1, a)));
 }
