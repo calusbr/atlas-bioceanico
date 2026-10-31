@@ -3,7 +3,7 @@
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
  * @ultima_modificacao: 2026-10-30
- * @versao: 0.7.0
+ * @versao: 0.8.0
  * @descricao: Layout de painel (mesma estrutura do Dashtreme vertical): cabeçalho fixo de 64px,
  *             barra lateral de 250px (recolhe para 72px; vira gaveta no celular), conteúdo em grade
  *             de 12 colunas e rodapé. Componentes: cartões de vidro, indicadores, filtros, botões em
@@ -69,6 +69,13 @@ h3 { font-size: .86rem; }
 .busca input::placeholder { color: var(--texto-3); }
 .busca input:focus { outline: none; border-color: var(--acento); box-shadow: inset 0 0 14px var(--acento-brilho); }
 .busca kbd { position: absolute; right: 12px; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--borda-forte); font: 500 .72rem var(--fonte-texto); color: var(--texto-3); }
+.busca-escopo { position: absolute; right: 6px; height: 30px; max-width: 46%; padding: 0 26px 0 12px; border-radius: var(--raio-pilula);
+  border: 1px solid var(--borda-forte); background: var(--fundo-2); color: var(--acento); font: 600 .74rem var(--fonte-texto); cursor: pointer;
+  appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 13px) 50%, calc(100% - 9px) 50%; background-size: 4px 4px; background-repeat: no-repeat; }
+.busca-escopo:focus-visible { outline: none; border-color: var(--acento); box-shadow: 0 0 0 2px var(--acento-brilho); }
+.busca.com-escopo input { padding-right: 150px; }
+.busca.com-escopo kbd { display: none; }
 .topo-acoes { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 
 .menu-suspenso { position: relative; }
@@ -154,6 +161,8 @@ body.recolhida .topo .alternar-fora { display: inline-grid; }
 @media (max-width: 720px) {
   .marca-texto { display: none; }
   .busca kbd { display: none; }
+  .busca-escopo { max-width: 92px; padding-left: 10px; text-overflow: ellipsis; }
+  .busca.com-escopo input { padding-right: 104px; }
   .topo { gap: 8px; padding-right: 8px; }
   #botao-tela { display: none; }
 }
@@ -269,10 +278,14 @@ select.campo option { background: var(--fundo-2); color: var(--texto); }
 .botao-fantasma:hover { border-color: var(--acento); }
 
 /* abas pequenas no cabeçalho dos cartões */
-.abas { display: inline-flex; padding: 3px; border-radius: var(--raio-pilula); border: 1px solid var(--borda); background: var(--vidro); }
-.abas button { height: 26px; padding: 0 12px; border: 0; border-radius: var(--raio-pilula); background: none; color: var(--texto-3); font-size: .74rem; cursor: pointer; transition: all .3s; }
+.abas { flex-shrink: 0; display: inline-flex; padding: 3px; border-radius: var(--raio-pilula); border: 1px solid var(--borda); background: var(--vidro); }
+.abas button { white-space: nowrap; height: 26px; padding: 0 12px; border: 0; border-radius: var(--raio-pilula); background: none; color: var(--texto-3); font-size: .74rem; cursor: pointer; transition: all .3s; }
 .abas button:hover { color: var(--texto); }
 .abas button[aria-pressed="true"] { background: var(--acento); color: var(--acento-texto); }
+.abas .aba-link { display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border-radius: var(--raio-pilula); color: var(--texto-3);
+  font-size: .74rem; text-decoration: none; transition: all .3s; }
+.abas .aba-link:hover { color: var(--texto); }
+.abas .aba-link[aria-pressed="true"] { background: var(--acento); color: var(--acento-texto); }
 
 /* ============================================================ selos, listas, tabelas */
 .selo { display: inline-block; padding: 2px 10px; border-radius: var(--raio-pilula); font-size: .7rem; font-weight: 600; letter-spacing: .03em; background: var(--vidro-forte); color: var(--texto-2); white-space: nowrap; }
@@ -394,13 +407,35 @@ select.campo option { background: var(--fundo-2); color: var(--texto); }
 .mudo { color: var(--texto-3); }
 .link-botao { background: none; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; color: inherit; }
 .link-botao:hover { color: var(--acento); }
-/* categorias do acervo */
-.categorias-doc { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
-.categoria-doc { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 2px 10px; align-items: center; padding: 12px 14px;
+/* apresentação (largura total) */
+.destaque-gestao { display: grid; grid-template-columns: auto 1fr auto; gap: 18px 22px; align-items: center; padding: 22px 26px; margin-bottom: 16px;
+  background: linear-gradient(120deg, var(--acento-suave), transparent 70%), var(--vidro); }
+.destaque-icone { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; background: var(--acento-suave);
+  color: var(--acento); font-size: 1.7rem; box-shadow: inset 0 0 18px var(--acento-brilho); }
+.destaque-texto h2 { margin: 0 0 6px; font-size: 1.08rem; }
+.destaque-texto p { margin: 0; max-width: 980px; color: var(--texto-2); font-size: .9rem; line-height: 1.55; }
+.destaque-texto .destaque-metodo { display: flex; gap: 6px; align-items: flex-start; margin-top: 8px; color: var(--texto-3); font-size: .82rem; }
+.destaque-metodo i { margin-top: 2px; color: var(--acento); }
+.destaque-selos { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.destaque-selos .selo { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; text-decoration: none; }
+@media (max-width: 900px) {
+  .destaque-gestao { grid-template-columns: auto 1fr; padding: 18px; }
+  .destaque-selos { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; }
+}
+@media (max-width: 520px) { .destaque-icone { display: none; } .destaque-gestao { grid-template-columns: 1fr; } }
+.kpi-clicavel { cursor: pointer; }
+.kpi-data .kpi-valor { font-size: clamp(1.15rem, 1.5vw, 1.5rem); white-space: nowrap; }
+.kpi-clicavel:hover, .kpi-clicavel:focus-visible { border-color: var(--acento); outline: none; }
+/* categorias do acervo: sempre em UMA linha (encolhem; em telas estreitas, rolam na horizontal) */
+.categorias-doc { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 4px;
+  scrollbar-width: thin; }
+.categoria-doc { flex: 1 1 0; min-width: 96px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 6px 8px;
+  align-items: center; padding: 10px 12px; scroll-snap-align: start;
   border-radius: var(--raio); border: 1px solid var(--borda); background: var(--vidro); color: var(--texto-2); cursor: pointer; text-align: left;
-  font: inherit; font-size: .8rem; transition: border-color .3s, box-shadow .3s, color .3s; }
-.categoria-doc i { grid-row: 1 / 3; font-size: 1.4rem; color: var(--acento); }
-.categoria-doc b { font: 600 1.15rem var(--fonte-titulo); color: var(--texto); }
+  font: inherit; transition: border-color .3s, box-shadow .3s, color .3s; }
+.categoria-doc i { font-size: 1.2rem; line-height: 1; color: var(--acento); }
+.categoria-doc b { justify-self: end; font: 600 1.05rem/1 var(--fonte-titulo); color: var(--texto); font-variant-numeric: tabular-nums; }
+.categoria-doc span { grid-column: 1 / -1; min-width: 0; font-size: .74rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .categoria-doc:hover { border-color: var(--acento); }
 .categoria-doc[aria-pressed="true"] { border-color: var(--acento); color: var(--acento); box-shadow: inset 0 0 14px var(--acento-brilho); background: var(--acento-suave); }
 .busca-docs { position: relative; max-width: 560px; margin-bottom: 8px; }
@@ -408,7 +443,15 @@ select.campo option { background: var(--fundo-2); color: var(--texto); }
 .busca-docs .campo { width: 100%; padding-left: 36px; }
 .acoes-doc { white-space: nowrap; text-align: right; }
 .acoes-doc .botao + .botao { margin-left: 6px; }
-.paises-doc .pais + .pais { margin-left: 4px; }
+.paises-doc { white-space: nowrap; }
+.paises-linha { display: inline-flex; flex-wrap: nowrap; gap: 4px; align-items: center; vertical-align: middle; }
+.paises-linha .pais { min-width: 26px; padding: 1px 5px; }
+.pais-mais { border-style: dashed; color: var(--texto-3); }
+/* alturas dos gráficos da Gestão */
+.grafico-medio { height: 360px; }
+.grafico-linha { height: 340px; }
+.recentes-rolagem { max-height: 372px; overflow-y: auto; scrollbar-width: thin; }
+@media (max-width: 700px) { .grafico-medio, .grafico-linha { height: 320px; } .recentes-rolagem { max-height: 420px; } }
 /* ficha do documento (painel à direita) */
 .ficha-veu { position: fixed; inset: 0; z-index: 60; background: rgba(0, 8, 14, .55); backdrop-filter: blur(2px); }
 .ficha-doc { position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; width: min(560px, 100%); overflow-y: auto; padding: 22px 24px 40px;

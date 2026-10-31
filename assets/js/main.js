@@ -2,11 +2,11 @@
  * @file: assets/js/main.js
  * @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
  * @data_criacao: 2026-10-25
- * @ultima_modificacao: 2026-10-29
- * @versao: 0.5.0
+ * @ultima_modificacao: 2026-10-30
+ * @versao: 0.6.0
  * @descricao: Liga a casca do painel: barra lateral (recolher no computador, gaveta no celular,
  *             submenus em sanfona, item ativo pela rota), menus suspensos (idioma, dados), modo
- *             claro/escuro, tela cheia, busca (atalho "/") e informações dos dados no rodapé.
+ *             claro/escuro, tela cheia, busca (atalho "/"; na Gestão, com escolha PDFs/matérias) e informações dos dados no rodapé.
  * @requisitos: navegador com módulos ES e import maps.
  */
 import { aplicarI18n, definirIdioma, idiomaAtual, t, dataCurta, numero } from './i18n.js';
@@ -44,6 +44,13 @@ function lateral() {
   document.querySelectorAll('.submenu a').forEach((a) => a.addEventListener('click', () => { if (celular()) fecharGaveta(); }));
 
   aoNavegar(({ secao, params }) => {
+    // na Gestão de Projeto (e nos resultados vindos dela) a busca escolhe onde procurar: PDFs, matérias ou os dois
+    const comEscopo = secao === 'gestao' || (secao === 'busca' && !!params[1]);
+    const campo = $('#campo-busca');
+    $('#escopo-busca').hidden = !comEscopo;
+    $('#form-busca').classList.toggle('com-escopo', comEscopo);
+    campo.dataset.i18nPlaceholder = comEscopo ? 'busca.placeholder.gestao' : 'busca.placeholder';
+    campo.placeholder = t(campo.dataset.i18nPlaceholder);
     document.querySelectorAll('.menu-grupo').forEach((g) => {
       const ativo = g.dataset.secao === secao;
       g.classList.toggle('ativo', ativo);
@@ -111,7 +118,8 @@ function acoes() {
   $('#form-busca').addEventListener('submit', (ev) => {
     ev.preventDefault();
     const q = $('#campo-busca').value.trim();
-    if (q) location.hash = `#/busca/${encodeURIComponent(q)}`;
+    const escopo = $('#escopo-busca');
+    if (q) location.hash = `#/busca/${encodeURIComponent(q)}${escopo.hidden ? '' : `/${escopo.value}`}`;
   });
   document.addEventListener('keydown', (ev) => {
     if (ev.key === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '')) {

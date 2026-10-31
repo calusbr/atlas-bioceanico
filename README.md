@@ -36,7 +36,14 @@ Atualizar os dados:
 ```bash
 sh scripts/publicar-dados.sh                      # no servidor: consolidar + exportar-v3 → dados/
 sh scripts/publicar-dados.sh --copiar <pasta_v3>  # ou copiar uma exportação já pronta
-git add dados && git commit -m "dados AAAA-MM-DD" && git push
+git add dados && git commit -m "dados AAAA-MM-DD" -- dados && git push
+```
+
+No servidor Linux, com o atlas clonado ao lado do projeto_rota, um comando só gera, faz o commit
+**apenas de `dados/`** e envia (precisa de chave SSH/token com escrita no GitHub):
+
+```bash
+PROJETO_ROTA=/home/ifmaker/projetos_ia/projeto-rota/V2/CODE sh scripts/publicar-dados.sh --publicar
 ```
 
 ## Estrutura
@@ -67,7 +74,7 @@ scripts/                      servir (local), publicar-dados
 | Matéria / Busca | texto integral com link para a fonte e dados extraídos; busca por título | B ✅ |
 | Sobre | projeto, fontes monitoradas, metodologia, dados abertos | B ✅ |
 | Semântico | mapa de assuntos, grafo de atores, busca por significado | D |
-| Gestão de Projeto | centrada nos documentos oficiais do Corredor Bioceânico (corredorbioceanico.org): filtros (fonte, período, trecho, país); 4 indicadores só de PDFs (investimento citado, % concluída, obras entregues, prazos); acervo com categorias (atas, declarações, relatórios, estudos, boletins…), busca por palavras e ficha do documento com link para o PDF oficial; mapa dos lugares citados; divulgado × realizado (linhas acumuladas, prazo prometido × data do anúncio, avanço por trecho) e linha do tempo de fatos — com opção de incluir as matérias | E ✅ (v0.7) |
+| Gestão de Projeto | centrada nos documentos oficiais do Corredor Bioceânico (corredorbioceanico.org): cartão de apresentação, data da atualização, filtros (fonte, período, trecho, país); 8 indicadores (investimento citado, % concluída, obras entregues, prazos, acervo, último documento, trechos e lugares citados); acervo com categorias em uma linha, busca por palavras e ficha do documento com link para o PDF oficial; mapa dos lugares citados; divulgado × realizado (barras anunciado × realizado por ano, prazo prometido × ano do anúncio, avanço por trecho); linha do tempo, etapas por trecho e anúncios de valor por ano — cada gráfico escolhe "Só PDFs" ou "PDFs + matérias"; a busca do topo escolhe PDFs, matérias ou ambos | E ✅ (v0.8) |
 | Agente | conversa com citações (GraphRAG) e sala ao vivo (Cloudflare Worker / Durable Objects) | F |
 
 Visual: glassmorphism escuro com acento neon (referências: Dashtreme e Artifice), modos escuro e claro,

@@ -4,7 +4,7 @@
   @autor: Lucas de Souza Rodrigues (lucas.rodrigues@ifms.edu.br) + I.A Generativa
   @data_criacao: 2026-10-25
   @ultima_modificacao: 2026-10-30
-  @versao: 0.7.0
+  @versao: 0.8.0
   @descricao: Casca do Atlas Bioceânico (GitHub Pages, sem etapa de build). Cabeçalho fixo com busca e
               preferências, barra lateral com as seções e subitens, área de conteúdo trocada pelo
               roteador (assets/js/roteador.js) e rodapé. Bibliotecas por CDN com versão fixa (import map).
@@ -53,6 +53,11 @@
     <form class="busca" role="search" id="form-busca">
       <i class="bx bx-search"></i>
       <input id="campo-busca" type="search" autocomplete="off" data-i18n-placeholder="busca.placeholder" placeholder="Buscar matérias…">
+      <select id="escopo-busca" class="busca-escopo" data-i18n-aria="busca.escopo" aria-label="Buscar em" hidden>
+        <option value="todos" data-i18n="busca.escopo.todos">PDFs + matérias</option>
+        <option value="pdf" data-i18n="busca.escopo.pdf">PDFs</option>
+        <option value="web" data-i18n="busca.escopo.web">Matérias</option>
+      </select>
       <kbd>/</kbd>
     </form>
 
